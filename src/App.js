@@ -1,23 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
-function ProductForm({ addForm }) {
+function ProductForm({ addForm, editIndex, formDataList, setEditIndex }) {
   const [productName, setProductName] = useState('');
   const [productPrice, setProductPrice] = useState('');
   const [category, setCategory] = useState('');
   const [quantity, setQuantity] = useState('');
   const [isActive, setIsActive] = useState('');
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!productName || !productPrice || !category || !quantity || !isActive) return;
-    addForm({ productName, productPrice, category, quantity, isActive });
+
+    if (editIndex !== null) {
+      const updatedList = [...formDataList];
+      updatedList[editIndex] = { productName, productPrice, category, quantity, isActive };
+      addForm(updatedList);
+      setEditIndex(null);
+    } else {
+      addForm([...formDataList, { productName, productPrice, category, quantity, isActive }]);
+    }
+
     setProductName('');
     setProductPrice('');
     setCategory('');
     setQuantity('');
     setIsActive('');
   };
+
+  useEffect(() => {
+    if (editIndex !== null) {
+      const { productName, productPrice, category, quantity, isActive } = formDataList[editIndex];
+      setProductName(productName);
+      setProductPrice(productPrice);
+      setCategory(category);
+      setQuantity(quantity);
+      setIsActive(isActive);
+    }
+  }, [editIndex, formDataList]);
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
@@ -26,7 +46,7 @@ function ProductForm({ addForm }) {
         type="text"
         className="input"
         value={productName}
-        onChange={e => setProductName(e.target.value)}
+        onChange={(e) => setProductName(e.target.value)}
       />
 
       <label>Enter Product Price</label>
@@ -34,7 +54,7 @@ function ProductForm({ addForm }) {
         type="text"
         className="input"
         value={productPrice}
-        onChange={e => setProductPrice(e.target.value)}
+        onChange={(e) => setProductPrice(e.target.value)}
       />
 
       <label>Enter Category</label>
@@ -42,7 +62,7 @@ function ProductForm({ addForm }) {
         type="text"
         className="input"
         value={category}
-        onChange={e => setCategory(e.target.value)}
+        onChange={(e) => setCategory(e.target.value)}
       />
 
       <label>Enter Quantity</label>
@@ -50,7 +70,7 @@ function ProductForm({ addForm }) {
         type="text"
         className="input"
         value={quantity}
-        onChange={e => setQuantity(e.target.value)}
+        onChange={(e) => setQuantity(e.target.value)}
       />
 
       <label>IsActive</label>
@@ -58,7 +78,7 @@ function ProductForm({ addForm }) {
         type="text"
         className="input"
         value={isActive}
-        onChange={e => setIsActive(e.target.value)}
+        onChange={(e) => setIsActive(e.target.value)}
       />
 
       <button type="submit">Submit</button>
@@ -66,7 +86,7 @@ function ProductForm({ addForm }) {
   );
 }
 
-function ProductList({ formDataList, deleteForm }) {
+function ProductList({ formDataList, deleteForm, editForm }) {
   return (
     <div className="form-data-list">
       <table>
@@ -78,7 +98,7 @@ function ProductList({ formDataList, deleteForm }) {
             <th>Category</th>
             <th>Quantity</th>
             <th>IsActive</th>
-            <th>Actions</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -91,7 +111,12 @@ function ProductList({ formDataList, deleteForm }) {
               <td>{formData.quantity}</td>
               <td>{formData.isActive}</td>
               <td>
-                <button onClick={() => deleteForm(index)}>Delete</button>
+                <button className="btn-action" onClick={() => deleteForm(index)}>
+                  Delete
+                </button>
+                <button className="btn-action" onClick={() => editForm(index)}>
+                  Edit
+                </button>
               </td>
             </tr>
           ))}
@@ -101,25 +126,30 @@ function ProductList({ formDataList, deleteForm }) {
   );
 }
 
-
 function App() {
   const [formDataList, setFormDataList] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
 
-  const addForm = formData => {
-    setFormDataList([...formDataList, formData]);
+  const addForm = (formData) => {
+    setFormDataList(formData);
   };
 
-  const deleteForm = index => {
-    const updateList =[...formDataList];
-    updateList.splice(index,1);
-    setFormDataList(updateList);
+  const deleteForm = (index) => {
+    const updatedList = [...formDataList];
+    updatedList.splice(index, 1);
+    setFormDataList(updatedList);
   };
+
+  const editForm = (index) => {
+    setEditIndex(index);
+  };
+
   return (
     <div className="main">
       <h2>Enter Product Details</h2>
-      <ProductForm addForm={addForm} />
+      <ProductForm addForm={addForm} editIndex={editIndex} formDataList={formDataList} setEditIndex={setEditIndex} />
       <h3>Product List</h3>
-      <ProductList formDataList={formDataList} deleteForm={deleteForm} />
+      <ProductList formDataList={formDataList} deleteForm={deleteForm} editForm={editForm} />
     </div>
   );
 }
